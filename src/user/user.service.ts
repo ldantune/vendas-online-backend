@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UserEntity } from './entities/user.entity';
 import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserType } from './enum/user-type.enum';
+import { createPasswordHashed } from 'src/utils/password';
 
 @Injectable()
 export class UserService {
@@ -12,16 +14,24 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
-    const saltOrRounds = 10;
+  async createUser(
+    createUserDto: CreateUserDto,
+    userType?: number,
+  ): Promise<UserEntity> {
+    const user = await this.findUserByEmail(createUserDto.email).catch(
+      () => undefined,
+    );
 
-    const passwordHashed = await hash(createUserDto.password, saltOrRounds);
+    if (user) {
+      throw new BadGatewayException('email registered in system');
+    }
+    const passwordHashed = await createPasswordHashed(createUserDto.password);
 
     return this.userRepository.save({
-        ...createUserDto,
-        type_user: 1,
-        password: passwordHashed,
-    })
+      ...createUserDto,
+      typeUser: userType ? userType : UserType.User,
+      password: passwordHashed,
+    });
   }
 
   async getAllUsers(): Promise<UserEntity[]> {
@@ -52,6 +62,20 @@ export class UserService {
 
     if (!user) {
       throw new NotFoundException(`UserId: ${userId} Not Found`);
+    }
+
+    return user;
+  }
+
+  async findUserByEmail(email: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Email: ${email} Not Found`);
     }
 
     return user;
