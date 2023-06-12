@@ -5,7 +5,7 @@ import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserType } from './enum/user-type.enum';
-import { createPasswordHashed } from 'src/utils/password';
+import { createPasswordHashed } from '../utils/password';
 
 @Injectable()
 export class UserService {
