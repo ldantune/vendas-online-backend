@@ -6,17 +6,20 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { ProductEntity } from './entities/product.entity';
-import { UserType } from 'src/user/enum/user-type.enum';
-import { Roles } from 'src/decorators/roles.decorator';
+import { UserType } from '../user/enum/user-type.enum';
+import { Roles } from '../decorators/roles.decorator';
 import { ReturnProduct } from './dtos/return-product.dto';
 import { DeleteResult } from 'typeorm';
 import { UpdateProductDTO } from './dtos/update-procut.dto';
+import { ReturnPriceDeliveryDto } from './dtos/return-price-delivery.dto';
+import { Pagination } from '../dtos/pagination.dto';
 
 @Controller('product')
 export class ProductController {
@@ -30,15 +33,15 @@ export class ProductController {
     );
   }
 
-  //   @Roles(UserType.Admin, UserType.Root, UserType.User)
-  //   @Get('/page')
-  //   async findAllPage(
-  //     @Query('search') search?: string,
-  //     @Query('size') size?: number,
-  //     @Query('page') page?: number,
-  //   ): Promise<Pagination<ReturnProduct[]>> {
-  //     return this.productService.findAllPage(search, size, page);
-  //   }
+  @Roles(UserType.Admin, UserType.Root, UserType.User)
+  @Get('/page')
+  async findAllPage(
+    @Query('search') search?: string,
+    @Query('size') size?: number,
+    @Query('page') page?: number,
+  ): Promise<Pagination<ReturnProduct[]>> {
+    return this.productService.findAllPage(search, size, page);
+  }
 
   @Roles(UserType.Admin, UserType.Root, UserType.User)
   @Get('/:productId')
@@ -75,11 +78,11 @@ export class ProductController {
     return this.productService.updateProduct(updateProduct, productId);
   }
 
-  //   @Get('/:idProduct/delivery/:cep')
-  //   async findPriceDelivery(
-  //     @Param('idProduct') idProduct: number,
-  //     @Param('cep') cep: string,
-  //   ): Promise<ReturnPriceDeliveryDto> {
-  //     return this.productService.findPriceDelivery(cep, idProduct);
-  //   }
+  @Get('/:idProduct/delivery/:cep')
+  async findPriceDelivery(
+    @Param('idProduct') idProduct: number,
+    @Param('cep') cep: string,
+  ): Promise<ReturnPriceDeliveryDto> {
+    return this.productService.findPriceDelivery(cep, idProduct);
+  }
 }
